@@ -30,6 +30,7 @@ Class {
 		'developerIdInput',
 		'developerStatusLabel',
 		'verifyDeveloperButton',
+		'saveSettingsButton',
 		'ethicsDirectorCheckBox',
 		'ethicsMandateInput',
 		'cognitiveLoadBudgetInput',
@@ -78,21 +79,22 @@ ChatPharoSettingsPresenter >> connectPresenters [
 			ollamaModelDropList items ifNotEmpty: [
 					| selected |
 					selected := ollamaModelDropList items detect: [ :each | each = model agent model ] ifNone: [ nil ].
-					selected ifNotNil: [ ollamaModelDropList selectItem: selected ] ifNil: [ ollamaModelDropList selectFirst ] ] ]. 
+					selected ifNotNil: [ ollamaModelDropList selectItem: selected ] ifNil: [ ollamaModelDropList selectFirst ] ] ].
 	apiDropList whenSelectedItemChangedDo: [ :assoc |
 			| apiClass newPresenter |
-			apiClass := assoc value. 
+			apiClass := assoc value.
 			userAccepted := ChatPharoSafetyAdvisor confirmExternalApiUsageOn: self forAgent: apiClass.
-			userAccepted ifFalse: [ 
+			userAccepted ifFalse: [
 					apiDropList selectItem:
 						(model availableApiChoices detect: [ :a | a value = model agent class ] ifNone: [ model availableApiChoices first ]).
-				self ].
+					self ].
 			userAccepted ifTrue: [
-					model useApi: apiClass. 
+					model useApi: apiClass.
+					chatPharo ifNotNil: [ chatPharo synchronizeChatsWithSettingsAgent ].
 					apiSettingsContainer removeAll.
 					newPresenter := apiClass settingsPresenterFor: model agent.
-					newPresenter ifNotNil: [ apiSettingsContainer add: newPresenter ]. 
-					systemPromptInput text: model agent systemPrompt ] ]. 
+					newPresenter ifNotNil: [ apiSettingsContainer add: newPresenter ].
+					systemPromptInput text: model agent systemPrompt ] ].
 	systemPromptInput whenTextChangedDo: [ :text |
 			text ~= ChatPharoAgent defaultSystemPrompt ifTrue: [
 					(ChatPharoSafetyAdvisor confirmPromptModificationOn: self)
@@ -113,7 +115,7 @@ ChatPharoSettingsPresenter >> connectPresenters [
 											model maximumIterations: 1.
 											maxIterationsInput text: '1' ]
 									ifFalse: [ maxIterationsInput text: model maximumIterations asString ] ]
-						ifFalse: [ model maximumIterations: num ] ] ]. 
+						ifFalse: [ model maximumIterations: num ] ] ].
 	browserExtensionCheckBox whenChangedDo: [ :presenter |
 			model browserExtensionEnabled: presenter.
 			self updateBrowserExtensionTab ].
@@ -165,7 +167,7 @@ ChatPharoSettingsPresenter >> connectPresenters [
 			text isEmpty
 				ifTrue: [ model timeBudgetMinutes: nil ]
 				ifFalse: [ model timeBudgetMinutes: text asNumber ] ].
-			
+
 	requestTimeoutInput whenTextChangedDo: [ :text |
 			text isEmpty
 				ifTrue: [ model requestTimeoutSeconds: nil ]
@@ -200,6 +202,12 @@ ChatPharoSettingsPresenter >> defaultLayout [
 
     ^ SpBoxLayout newTopToBottom
         add: notebook;
+add: (SpBoxLayout newHorizontal
+			spacing: 8;
+			add: (self newLabel label: 'Use Save Settings to persist your changes.') expand: true;
+			add: saveSettingsButton expand: false;
+			yourself)
+		expand: false;
         yourself
 ]
 
@@ -381,17 +389,23 @@ ChatPharoSettingsPresenter >> initializePresenters [
 		                   yourself.
 
 
-requestTimeoutInput := self newNumberInput
+	requestTimeoutInput := self newNumberInput
 		                       placeholder: 'e.g. 300';
 		                       text: model requestTimeoutSeconds asString;
 		                       yourself.
-		
-		
+
+
 	messageLimitInput := self newNumberInput
 		                     placeholder: 'e.g. 50';
 		                     text: model messageLimit asString;
 		                     yourself.
 
+	saveSettingsButton := self newButton
+		label: 'Save Settings';
+		icon: (self iconNamed: #smallSave);
+		help: 'Persist current settings';
+		action: [ self saveSettings ];
+		yourself.
 
 	apiDropList selectItem:
 		(model availableApiChoices detect: [ :assoc | assoc value = model agent class ] ifNone: [ model availableApiChoices first ]).
@@ -720,6 +734,14 @@ ChatPharoSettingsPresenter >> removeBrowserExtensionTab [
     browserExtensionPage ifNotNil: [
         notebook removePage: browserExtensionPage.
         browserExtensionPage := nil ]
+]
+
+{ #category : 'initialization' }
+ChatPharoSettingsPresenter >> saveSettings [
+
+	ChatPharoSettings setDefault: model.
+	ChatPharoSettings saveDefault.
+	self inform: 'Settings saved.'
 ]
 
 { #category : 'accessing - model' }
