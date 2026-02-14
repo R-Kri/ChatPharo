@@ -634,9 +634,3 @@ ChatPharoChat >> whenToolExecutionDo: aBlock [
 
         onToolExecution := aBlock
 ]
-
-{ #category : 'running' }
-ChatPharoChat >> whenUserMessageSentDo: aBlock [
-
-	onUserMessageSent := aBlock
-]
