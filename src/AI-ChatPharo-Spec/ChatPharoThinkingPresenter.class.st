@@ -163,6 +163,8 @@ ChatPharoThinkingPresenter >> startAnimation [
 		                    [ true ] whileTrue: [
 				                    dots := dots + 1 \\ 4.
 				                    dotsLabel label: ('.' repeat: dots).
+				 thinkingElapsedSeconds := (((DateAndTime now - thinkingStartedAt) asSeconds rounded) max: 0).
+				                    self updateStatusLabel.
 				                    (Delay forMilliseconds: 400) wait ] ] fork
 ]
 
@@ -203,17 +205,22 @@ ChatPharoThinkingPresenter >> updateElapsedThinkingTime [
 
 { #category : 'initialization' }
 ChatPharoThinkingPresenter >> updateStatusLabel [
-	"Update the status label based on current phase"
+    "Update the status label based on current phase"
 
-	| text |
-	text := currentPhase
-		        caseOf: {
-				        ([ #thinking ] -> [ 'Thinking' ]).
-				        ([ #executing ] -> [ 'Executing tools' ]).
-				        ([ #analyzing ] -> [ 'Analyzing' ]).
-				        ([ #searching ] -> [ 'Searching code' ]).
-				        ([ #finished ] -> [ 'End of thinking (' , self formattedElapsedThinkingTime , ')' ]) }
-		        otherwise: [ 'Thinking' ].
-		modelNameLabel label: self modelNameLabelText.
-	statusLabel label: text
+    | phaseText text |
+
+    phaseText := currentPhase
+        caseOf: {
+            ([ #thinking ]  -> [ 'Thinking' ]).
+            ([ #executing ] -> [ 'Executing tools' ]).
+            ([ #analyzing ] -> [ 'Analyzing' ]).
+            ([ #searching ] -> [ 'Searching code' ]).
+            ([ #finished ]  -> [ 'End of thinking' ]) }
+        otherwise: [ 'Thinking' ].
+
+    text := phaseText , ' (' , self formattedElapsedThinkingTime , ')'.
+
+    modelNameLabel label: self modelNameLabelText.
+    statusLabel label: text.
+
 ]
