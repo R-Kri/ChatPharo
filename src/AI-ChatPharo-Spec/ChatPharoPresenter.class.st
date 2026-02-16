@@ -102,9 +102,9 @@ ChatPharoPresenter >> initializePresenters [
 	
 	notebook := self newNotebook.
 	toolbar := self newToolbar.
-disclaimerLabel := self newLabel
-		label: 'ChatPharo may make mistakes. Check important info.';
-		yourself.
+	disclaimerLabel := self newLabel
+		                   label: 'ChatPharo may make mistakes. Check important info.';
+		                   yourself.
 	toolbar add: (SpToolbarButtonPresenter new
 			 label: 'New Chat';
 			 icon: (self iconNamed: #add);
@@ -162,8 +162,8 @@ disclaimerLabel := self newLabel
 		                        enabled: false;
 		                        action: [ self openSettings ];
 		                        yourself.
-		
-		toolbar add: (SpToolbarButtonPresenter new
+
+	toolbar add: (SpToolbarButtonPresenter new
 			 label: 'Help';
 			 icon: (self iconNamed: #smallQuestion);
 			 help: 'Get help with ChatPharo - context-aware assistance';
@@ -190,7 +190,8 @@ disclaimerLabel := self newLabel
 	self updateConnectionStatus.
 	ChatPharoLogger logFrontend: 'Main presenter initialized' details: (Dictionary new
 			 at: 'initialTabs' put: notebook pages size;
-			 yourself)
+			 yourself).
+	notebook pages ifEmpty: [ self addNewChat ].
 ]
 
 { #category : 'initialization' }

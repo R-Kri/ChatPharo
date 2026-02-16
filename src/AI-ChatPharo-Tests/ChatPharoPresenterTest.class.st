@@ -104,4 +104,5 @@ ChatPharoPresenterTest >> testNotebookStartsEmpty [
 	| notebook |
 	notebook := presenter instVarNamed: #notebook.
 	self assert: notebook pages size equals: 1.
+	self assert: notebook pages first title equals: 'Chat 1'.
 ]
